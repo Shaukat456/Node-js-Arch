@@ -1,0 +1,12 @@
+{
+  "name": "node-js-arch",
+  "version": "1.0.0",
+  "description": "Minimal Node.js boilerplate for the Node-js-Arch repo",
+  "main": "Index.js",
+  "scripts": {
+    "start": "node Index.js",
+    "dev": "node --watch Index.js"
+  },
+  "author": "",
+  "license": "MIT"
+}
