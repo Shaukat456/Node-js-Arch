@@ -1,0 +1,10 @@
+{
+  "name": "auth-api-example",
+  "version": "1.0.0",
+  "description": "Minimal authentication & authorization example using Node core (no external deps).",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js"
+  },
+  "license": "MIT"
+}
