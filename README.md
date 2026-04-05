@@ -32,9 +32,9 @@ Study stages (ordered beginner → advanced)
 
 Read (in this order):
 
-- `Intro.md` (root) — big-picture overview
-- `Event-Loop.md`
-- `Event-Loop-and-Concurrency.md`
+- `01-Intro.md` (root) — big-picture overview
+- `02-Event-Loop.md`
+- `03-Event-Loop-and-Concurrency.md`
 
 Why: the event loop underpins Node's concurrency model. Understanding it first makes later topics clearer.
 
@@ -48,11 +48,11 @@ Files to open: `Intro.md`, `Event-Loop.md`, `Event-Loop-and-Concurrency.md`.
 
 Read:
 
-- `Parallelism.md` (root)
-- `WorkerThreads.md` (root)
-- `Multithreading/intro.md`
-- `Multithreading/PM2.md`
-- `Event-Emission/Emit.md`
+- `04-Parallelism.md` (root)
+- `05-WorkerThreads.md` (root)
+- `06-Multithreading-intro.md`
+- `07-Multithreading-PM2.md`
+- `15-Event-Emission-Emit.md`
 
 Why: learn how to handle CPU-bound work and orchestrate processes/workers.
 
@@ -66,14 +66,14 @@ Files to open: `Parallelism.md`, `WorkerThreads.md`, `Multithreading/*`, `Event-
 
 Read:
 
-- `Api/Basics.md`
-- `API-Architecture-Patterns/MVC.md`
-- `API-Architecture-Patterns/Dependency Injection.md`
-- `API-Architecture-Patterns/Repository-Service-Pattern.md`
-- `Api/AdvancePractices.md`
-- `Api/Performance.md`
-- `Api/Scale.md`
-- `Architectures/Microservice-Monolith.md`
+- `Api/08-API-Basics.md`
+- `API-Architecture-Patterns/29-API-Architecture-Patterns-MVC.md`
+- `API-Architecture-Patterns/28-API-Architecture-Patterns-Dependency-Injection.md`
+- `API-Architecture-Patterns/30-API-Architecture-Patterns-Repository-Service-Pattern.md`
+- `Api/11-API-AdvancePractices.md`
+- `Api/12-API-Performance.md`
+- `Api/13-API-Scale.md`
+- `Architectures/27-Architectures-Microservice-Monolith.md`
 
 Why: structure APIs for maintainability and scale.
 
@@ -87,12 +87,12 @@ Files to open: all files in `Api/` and `API-Architecture-Patterns/`, plus `Archi
 
 Read:
 
-- `DB/Intro.md`
-- `DB/DB-concepts.md`
-- `DB/Indexing.md`
-- `DB/Aggregation-Framework/InDepth.md`
-- `DB/Aggregation-Framework/Advance.md`
-- `DB/Search/Intro.md`
+- `DB/19-DB-Intro.md`
+- `DB/20-DB-Concepts.md`
+- `DB/22-DB-Indexing.md`
+- `DB/Aggregation-Framework/23-DB-Aggregation-Framework-InDepth.md`
+- `DB/Aggregation-Framework/24-DB-Aggregation-Framework-Advance.md`
+- `DB/Search/25-DB-Search-Intro.md`
 
 Why: database design and queries are critical for performance and correctness.
 
@@ -107,8 +107,8 @@ Files to open: files under `DB/`.
 Read:
 
 - `HandlingData/Stream-Buffer.md`
-- `MessagingQueue/Intro.md`
-- `MessagingQueue/Comparison.md`
+- `MessagingQueue/16-MessagingQueue-Intro.md`
+- `MessagingQueue/17-MessagingQueue-Comparison.md`
 
 Why: handle large data efficiently and integrate via queues.
 
@@ -122,9 +122,9 @@ Files to open: `HandlingData/*`, `MessagingQueue/*`.
 
 Read:
 
-- `Security/Security.md`
-- `Security/Advance-Auth.md`
-- Revisit `Api/Performance.md` with production checklist in mind
+- `Security/31-Security.md`
+- `Security/32-Advance-Auth.md`
+- Revisit `Api/12-API-Performance.md` with production checklist in mind
 
 Why: prepare apps for real-world deployments: secure, testable, and observable.
 
@@ -156,12 +156,12 @@ Suggested study schedule (example)
 
 Quick repo-to-stage file mapping (so you can jump straight to files)
 
-- Stage 0: `Intro.md`, `Event-Loop.md`, `Event-Loop-and-Concurrency.md`
-- Stage 1: `Parallelism.md`, `WorkerThreads.md`, `Multithreading/`, `Event-Emission/Emit.md`
-- Stage 2: `Api/`, `API-Architecture-Patterns/`, `Architectures/`
-- Stage 3: `DB/` (all subfolders)
-- Stage 4: `HandlingData/`, `MessagingQueue/`
-- Stage 5: `Security/`, plus `Api/Performance.md` for production concerns
+- Stage 0: `01-Intro.md`, `02-Event-Loop.md`, `03-Event-Loop-and-Concurrency.md`
+- Stage 1: `04-Parallelism.md`, `05-WorkerThreads.md`, `06-Multithreading-intro.md`, `07-Multithreading-PM2.md`, `15-Event-Emission-Emit.md`
+- Stage 2: `Api/08-API-Basics.md`, `Api/11-API-AdvancePractices.md`, `Api/12-API-Performance.md`, `Api/13-API-Scale.md`, `API-Architecture-Patterns/28-API-Architecture-Patterns-Dependency-Injection.md`, `API-Architecture-Patterns/29-API-Architecture-Patterns-MVC.md`, `API-Architecture-Patterns/30-API-Architecture-Patterns-Repository-Service-Pattern.md`, `Architectures/26-Architectures-Intro.md`, `Architectures/27-Architectures-Microservice-Monolith.md`
+- Stage 3: `DB/19-DB-Intro.md`, `DB/20-DB-Concepts.md`, `DB/22-DB-Indexing.md`, `DB/Aggregation-Framework/23-DB-Aggregation-Framework-InDepth.md`, `DB/Aggregation-Framework/24-DB-Aggregation-Framework-Advance.md`, `DB/Search/25-DB-Search-Intro.md`
+- Stage 4: `HandlingData/Stream-Buffer.md`, `MessagingQueue/16-MessagingQueue-Intro.md`, `MessagingQueue/17-MessagingQueue-Comparison.md`
+- Stage 5: `Security/31-Security.md`, `Security/32-Advance-Auth.md`, plus `Api/12-API-Performance.md` for production concerns
 
 Recommended tools
 
