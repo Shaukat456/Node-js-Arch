@@ -147,6 +147,32 @@ Checkpoint exercises (what to prove you learned)
 - Design indexes and an aggregation pipeline for a sample query.
 - Create a streaming file pipeline that avoids OOM on large files.
 
+## Lesson-wise Mini Projects
+
+- **Stage 0: Event loop fundamentals**
+  - Build `event-loop-order.js` with `setTimeout`, `setImmediate`, `process.nextTick`, Promises, and a small I/O callback.
+  - Learn: microtask/task queue ordering and runtime scheduling behavior.
+
+- **Stage 1: Concurrency + worker threads**
+  - Build `worker-cpu-offload.js` using `worker_threads` (heavy computation in worker, results to main thread).
+  - Learn: non-blocking main loop, message passing, CPU-vs-I/O boundaries.
+
+- **Stage 2: API architecture**
+  - Build `todo-api` with Express + MVC + DI + repository-service patterns (CRUD endpoints, in-memory store).
+  - Learn: separation of concerns, dependency injection, API test structure.
+
+- **Stage 3: Database patterns**
+  - Build `db-model` with MongoDB schema design, indexes, and aggregation pipeline for reports.
+  - Learn: query performance, index strategy, aggregation stages.
+
+- **Stage 4: Streams + messaging**
+  - Build `stream-transform.js` to process large file streams and a `message-worker` queue consumer.
+  - Learn: backpressure, memory-safe processing, event-driven job handling.
+
+- **Stage 5: Security + production hardening**
+  - Build `secure-api` with JWT auth middleware, role guard, and controllers tested via `supertest`.
+  - Learn: auth flow, secure headers, tokens, and production validation.
+
 Suggested study schedule (example)
 
 - Week 1: Stage 0 + Stage 1 (foundations and concurrency exercises).
