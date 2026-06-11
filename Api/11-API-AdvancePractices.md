@@ -1,9 +1,4 @@
-Excellent choice 🎯
-This is where your Node.js API knowledge becomes **“production-grade”** — understanding how **async/await**, **middleware chains**, **CORS**, and **centralized error handling** make APIs robust, maintainable, and secure.
-
-Let’s go step-by-step with deep concepts, analogies, and code examples 👇
-
----
+===
 
 # ⚡ **Advanced Node.js API Concepts**
 
@@ -168,7 +163,7 @@ app.use(
     origin: "http://localhost:3000", // or '*'
     methods: ["GET", "POST", "PUT", "DELETE"],
     allowedHeaders: ["Content-Type", "Authorization"],
-  })
+  }),
 );
 ```
 
@@ -195,7 +190,7 @@ app.use(
       if (!origin || allowed.includes(origin)) callback(null, true);
       else callback(new Error("Not allowed by CORS"));
     },
-  })
+  }),
 );
 ```
 
@@ -259,7 +254,7 @@ app.get(
   asyncHandler(async (req, res) => {
     const data = await fetchData();
     res.json(data);
-  })
+  }),
 );
 ```
 
@@ -323,7 +318,7 @@ app.get(
   asyncHandler(async (req, res) => {
     const user = await db.findUser(); // Suppose this throws
     res.json(user);
-  })
+  }),
 );
 ```
 
@@ -364,7 +359,7 @@ app.get(
     const user = await fakeDB.find((u) => u.id == req.params.id);
     if (!user) throw { status: 404, message: "User not found" };
     res.json(user);
-  })
+  }),
 );
 
 // Global Error Handler

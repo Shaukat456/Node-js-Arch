@@ -1,7 +1,4 @@
-Excellent 🔥
-Let’s now move into **API Scaling & Load Balancing in Node.js** — this is where you turn a _fast API_ into a _massively scalable system_ that can handle **millions of requests per day** reliably.
-
-We’ll go from **conceptual foundations → practical scaling methods → real-world deployment architecture.**
+===
 
 ---
 
@@ -217,7 +214,6 @@ Worker handles it separately — freeing your API immediately.
 
 - Use **PM2 monitoring dashboard** or **Grafana + Prometheus**.
 - Track:
-
   - CPU usage
   - Memory usage
   - Request latency

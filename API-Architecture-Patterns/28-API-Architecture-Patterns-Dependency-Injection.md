@@ -1,10 +1,8 @@
-Awesome 🔥 — now we’ll go deep into one of the most **critical advanced architecture patterns** for backend systems:
+===
 
 # 💉 Dependency Injection (DI) in Node.js
 
-_(Why, how, and how it fits with Repository + Service + Controller architecture)_
-
----
+## _(Why, how, and how it fits with Repository + Service + Controller architecture)_
 
 ## 🧠 1. The Problem Without Dependency Injection
 

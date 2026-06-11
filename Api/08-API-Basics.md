@@ -1,10 +1,5 @@
-Perfect 👍
-Now we’re entering the **core of backend development** with Node.js —
-understanding **APIs (Application Programming Interfaces)** — how they work, how Node.js handles them, and how you build them efficiently.
 
-We’ll go step by step from **concept → architecture → code → interview-level understanding**.
-
----
+===
 
 # ⚡ **Node.js APIs — In Depth (Concept, Working, and Implementation)**
 
