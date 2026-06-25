@@ -1,6 +1,4 @@
-Perfect — this is where **high-performance Node.js API design** really comes into play. Let’s dive deep into **API performance optimization** — not just the “how”, but also the “why”, with **practical examples** and **real-world analogies**.
-
----
+## ===
 
 ## ⚙️ 1. What Do We Mean by API Performance?
 
