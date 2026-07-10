@@ -1,7 +1,3 @@
----
-title: "MySQL Joins — The Guide You'll Never Forget"
-description: "Step-by-step, example-driven walkthrough of every MySQL join type, with the setup, queries, and results for each."
----
 
 # MySQL Joins — The Guide You'll Never Forget
 
@@ -60,11 +56,70 @@ These three cases are the *only* things that ever differ between join types. Eve
 
 ---
 
+## The four shapes at a glance
+
+Every join type is just a different shaded region of the same two overlapping circles (`customers` and `orders`). Keep this picture in your head — the rest of this guide is just teaching you how to write the SQL for each shape.
+
+<div align="center">
+<svg width="600" height="320" viewBox="0 0 600 320" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <clipPath id="ovA"><circle cx="90" cy="80" r="50"/></clipPath>
+    <clipPath id="ovB"><circle cx="150" cy="80" r="50"/></clipPath>
+  </defs>
+
+  <!-- INNER -->
+  <text x="120" y="15" font-size="13" font-weight="600" text-anchor="middle" fill="#333">INNER JOIN</text>
+  <circle cx="90" cy="80" r="50" fill="none" stroke="#999" stroke-width="1.5"/>
+  <circle cx="150" cy="80" r="50" fill="none" stroke="#999" stroke-width="1.5"/>
+  <g clip-path="url(#ovA)"><g clip-path="url(#ovB)"><rect x="0" y="0" width="240" height="160" fill="#d97706" opacity="0.75"/></g></g>
+  <text x="90" y="148" font-size="11" text-anchor="middle" fill="#666">customers</text>
+  <text x="150" y="148" font-size="11" text-anchor="middle" fill="#666">orders</text>
+
+  <!-- LEFT -->
+  <text x="420" y="15" font-size="13" font-weight="600" text-anchor="middle" fill="#333">LEFT JOIN</text>
+  <circle cx="390" cy="80" r="50" fill="#2563eb" opacity="0.55" stroke="#999" stroke-width="1.5"/>
+  <circle cx="450" cy="80" r="50" fill="none" stroke="#999" stroke-width="1.5"/>
+  <text x="390" y="148" font-size="11" text-anchor="middle" fill="#666">customers</text>
+  <text x="450" y="148" font-size="11" text-anchor="middle" fill="#666">orders</text>
+
+  <!-- RIGHT -->
+  <text x="120" y="185" font-size="13" font-weight="600" text-anchor="middle" fill="#333">RIGHT JOIN</text>
+  <circle cx="90" cy="250" r="50" fill="none" stroke="#999" stroke-width="1.5"/>
+  <circle cx="150" cy="250" r="50" fill="#dc2626" opacity="0.5" stroke="#999" stroke-width="1.5"/>
+  <text x="90" y="318" font-size="11" text-anchor="middle" fill="#666">customers</text>
+  <text x="150" y="318" font-size="11" text-anchor="middle" fill="#666">orders</text>
+
+  <!-- FULL -->
+  <text x="420" y="185" font-size="13" font-weight="600" text-anchor="middle" fill="#333">FULL OUTER JOIN</text>
+  <circle cx="390" cy="250" r="50" fill="#7c3aed" opacity="0.45" stroke="#999" stroke-width="1.5"/>
+  <circle cx="450" cy="250" r="50" fill="#7c3aed" opacity="0.45" stroke="#999" stroke-width="1.5"/>
+  <text x="390" y="318" font-size="11" text-anchor="middle" fill="#666">customers</text>
+  <text x="450" y="318" font-size="11" text-anchor="middle" fill="#666">orders</text>
+</svg>
+</div>
+
+---
+
 ## Step 1: INNER JOIN — only the overlap
 
 **Rule:** Return a row only when both tables have a match. Unmatched rows on either side are dropped entirely.
 
 > **Analogy:** Only guests that *both* the bride and groom know get invited. Everyone else — sorry.
+
+<div align="center">
+<svg width="260" height="170" viewBox="0 0 260 170" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <clipPath id="innerA1"><circle cx="100" cy="80" r="55"/></clipPath>
+    <clipPath id="innerB1"><circle cx="160" cy="80" r="55"/></clipPath>
+  </defs>
+  <circle cx="100" cy="80" r="55" fill="none" stroke="#999" stroke-width="1.5"/>
+  <circle cx="160" cy="80" r="55" fill="none" stroke="#999" stroke-width="1.5"/>
+  <g clip-path="url(#innerA1)"><g clip-path="url(#innerB1)"><rect x="0" y="0" width="260" height="170" fill="#d97706" opacity="0.75"/></g></g>
+  <text x="100" y="155" font-size="11" text-anchor="middle" fill="#666">customers</text>
+  <text x="160" y="155" font-size="11" text-anchor="middle" fill="#666">orders</text>
+  <text x="130" y="80" font-size="10" text-anchor="middle" fill="#7c3a00" font-weight="600" dominant-baseline="middle">shaded</text>
+</svg>
+</div>
 
 ### Implementation
 
@@ -104,6 +159,16 @@ Sara and Nadia are gone (no orders). Order #4 is gone (no matching customer). On
 **Rule:** Return *every* row from the left table (the one right after `FROM`), attaching matching right-table data where it exists, or `NULL` where it doesn't.
 
 > **Analogy:** It's the bride's wedding too. Everyone on *her* list is invited, whether or not the groom happens to know them.
+
+<div align="center">
+<svg width="260" height="170" viewBox="0 0 260 170" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="100" cy="80" r="55" fill="#2563eb" opacity="0.55" stroke="#999" stroke-width="1.5"/>
+  <circle cx="160" cy="80" r="55" fill="none" stroke="#999" stroke-width="1.5"/>
+  <text x="100" y="155" font-size="11" text-anchor="middle" fill="#666">customers</text>
+  <text x="160" y="155" font-size="11" text-anchor="middle" fill="#666">orders</text>
+  <text x="80" y="80" font-size="10" text-anchor="middle" fill="#1e3a8a" font-weight="600" dominant-baseline="middle">shaded</text>
+</svg>
+</div>
 
 ### Implementation
 
@@ -171,6 +236,16 @@ Notice `COALESCE(SUM(...), 0)` — without it, Sara and Nadia would show `NULL` 
 
 **Rule:** Same idea as LEFT JOIN, flipped. Keep every row from the right table; fill `NULL` where the left table has no match.
 
+<div align="center">
+<svg width="260" height="170" viewBox="0 0 260 170" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="100" cy="80" r="55" fill="none" stroke="#999" stroke-width="1.5"/>
+  <circle cx="160" cy="80" r="55" fill="#dc2626" opacity="0.5" stroke="#999" stroke-width="1.5"/>
+  <text x="100" y="155" font-size="11" text-anchor="middle" fill="#666">customers</text>
+  <text x="160" y="155" font-size="11" text-anchor="middle" fill="#666">orders</text>
+  <text x="180" y="80" font-size="10" text-anchor="middle" fill="#7f1d1d" font-weight="600" dominant-baseline="middle">shaded</text>
+</svg>
+</div>
+
 ### Implementation
 
 ```sql
@@ -222,6 +297,16 @@ LEFT JOIN customers
 **Rule:** Keep everything from both sides. Matches join up; unmatched rows on *either* side show `NULL` for the missing columns.
 
 > **Analogy:** Both families' entire guest lists attend — the bride's friends who don't know the groom, the groom's friends who don't know the bride, and everyone in between.
+
+<div align="center">
+<svg width="260" height="170" viewBox="0 0 260 170" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="100" cy="80" r="55" fill="#7c3aed" opacity="0.45" stroke="#999" stroke-width="1.5"/>
+  <circle cx="160" cy="80" r="55" fill="#7c3aed" opacity="0.45" stroke="#999" stroke-width="1.5"/>
+  <text x="100" y="155" font-size="11" text-anchor="middle" fill="#666">customers</text>
+  <text x="160" y="155" font-size="11" text-anchor="middle" fill="#666">orders</text>
+  <text x="130" y="140" font-size="10" text-anchor="middle" fill="#4c1d95" font-weight="600" dominant-baseline="middle">all shaded</text>
+</svg>
+</div>
 
 ### The MySQL gotcha (memorize this forever)
 
@@ -277,6 +362,19 @@ Everyone shows up: matched pairs, customers with no orders, and the orphaned ord
 **Rule:** Every row from table A paired with every row from table B. No `ON` clause, no matching condition — just every possible combination.
 
 > **Analogy:** A t-shirt shop with sizes `{S, M, L}` and colors `{Red, Blue}`. A CROSS JOIN produces every size-color combination — the entire product catalog — because "size" and "color" don't need to match on anything; you *want* every pairing.
+
+<div align="center">
+<svg width="260" height="170" viewBox="0 0 260 170" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="90" cy="80" r="45" fill="none" stroke="#999" stroke-width="1.5" stroke-dasharray="4 3"/>
+  <circle cx="180" cy="80" r="45" fill="none" stroke="#999" stroke-width="1.5" stroke-dasharray="4 3"/>
+  <text x="90" y="150" font-size="11" text-anchor="middle" fill="#666">sizes</text>
+  <text x="180" y="150" font-size="11" text-anchor="middle" fill="#666">colors</text>
+  <text x="135" y="20" font-size="10" text-anchor="middle" fill="#666">no overlap needed — every pair kept</text>
+  <line x1="70" y1="65" x2="160" y2="65" stroke="#059669" stroke-width="1"/>
+  <line x1="70" y1="80" x2="160" y2="80" stroke="#059669" stroke-width="1"/>
+  <line x1="70" y1="95" x2="160" y2="95" stroke="#059669" stroke-width="1"/>
+</svg>
+</div>
 
 ### Implementation
 
