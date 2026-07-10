@@ -1,756 +1,393 @@
-Joins are one of the **most important concepts in MySQL**. If you understand joins properly, you can work with almost any database.
+---
+title: "MySQL Joins — The Guide You'll Never Forget"
+description: "Step-by-step, example-driven walkthrough of every MySQL join type, with the setup, queries, and results for each."
+---
 
-Think of joins as answering this question:
+# MySQL Joins — The Guide You'll Never Forget
 
-> **"How do I combine information stored in different tables?"**
+## The core idea
+
+Think of two guest lists for a wedding:
+
+- **Bride's list** = Table A
+- **Groom's list** = Table B
+
+A **JOIN** is just a rule for deciding who gets invited, based on how the two lists overlap. Every join type below is just a different rule for combining two tables. Once that clicks, the syntax is just details.
 
 ---
 
-# Why do we need Joins?
+## Step 0: The setup (run this first)
 
-Imagine you are building a university management system.
-
-Instead of storing everything in one huge table, databases separate data into multiple tables.
-
-## Students Table
-
-| student_id | name  | age |
-| ---------- | ----- | --- |
-| 1          | Ali   | 20  |
-| 2          | Sara  | 22  |
-| 3          | Ahmed | 21  |
-
----
-
-## Courses Table
-
-| course_id | course_name |
-| --------- | ----------- |
-| 101       | Physics     |
-| 102       | Chemistry   |
-| 103       | Mathematics |
-
----
-
-## Enrollment Table
-
-This table tells which student studies which course.
-
-| student_id | course_id |
-| ---------- | --------- |
-| 1          | 101       |
-| 1          | 103       |
-| 2          | 102       |
-| 3          | 101       |
-
-Notice something?
-
-The student's name isn't repeated.
-
-The course name isn't repeated.
-
-Instead, IDs connect the tables.
-
-This is called a **relationship**.
-
-Now suppose your boss asks:
-
-> Show me every student's name along with the course they are studying.
-
-Problem:
-
-* Student name is in Students table.
-* Course name is in Courses table.
-* Connection is inside Enrollment table.
-
-This is exactly why **JOIN** exists.
-
----
-
-# Visual Understanding
-
-```
-Students
-+----+-------+
-|1   | Ali   |
-|2   | Sara  |
-|3   | Ahmed |
-+----+-------+
-
-Enrollment
-+----+------+
-|1   |101   |
-|1   |103   |
-|2   |102   |
-|3   |101   |
-+----+------+
-
-Courses
-+-----+------------+
-|101  |Physics     |
-|102  |Chemistry   |
-|103  |Math        |
-+-----+------------+
-```
-
-JOIN combines them.
-
-↓
-
-```
-Ali      Physics
-Ali      Math
-Sara     Chemistry
-Ahmed    Physics
-```
-
----
-
-# Types of Joins
-
-There are mainly:
-
-```
-JOIN
-│
-├── INNER JOIN
-├── LEFT JOIN
-├── RIGHT JOIN
-├── FULL OUTER JOIN
-├── CROSS JOIN
-└── SELF JOIN
-```
-
-We'll learn one by one.
-
----
-
-# 1. INNER JOIN
-
-Most commonly used.
-
-Think:
-
-> Give me only the matching records.
-
----
-
-Example
-
-Students
-
-| id | name  |
-| -- | ----- |
-| 1  | Ali   |
-| 2  | Sara  |
-| 3  | Ahmed |
-
-Orders
-
-| order_id | student_id |
-| -------- | ---------- |
-| 100      | 1          |
-| 101      | 1          |
-| 102      | 2          |
-
-Notice:
-
-Ahmed never placed an order.
-
----
-
-Query
+Every example in this guide uses the same two tables, so you can copy-paste and follow along in your own MySQL instance.
 
 ```sql
-SELECT
-students.name,
-orders.order_id
-FROM students
+CREATE DATABASE join_demo;
+USE join_demo;
+
+CREATE TABLE customers (
+  id INT PRIMARY KEY,
+  name VARCHAR(50)
+);
+
+CREATE TABLE orders (
+  id INT PRIMARY KEY,
+  customer_id INT,
+  amount DECIMAL(10,2)
+);
+
+INSERT INTO customers (id, name) VALUES
+  (1, 'Ali'),
+  (2, 'Sara'),
+  (3, 'Zain'),
+  (4, 'Nadia');
+
+INSERT INTO orders (id, customer_id, amount) VALUES
+  (1, 1, 500.00),
+  (2, 1, 200.00),
+  (3, 3, 900.00),
+  (4, 5, 150.00);  -- note: customer_id 5 doesn't exist!
+```
+
+**Why this data is designed this way — memorize this shape:**
+
+| Situation | Who represents it |
+|---|---|
+| A customer with multiple orders | Ali (id 1) |
+| A customer with zero orders | Sara, Nadia |
+| An order with no matching customer | Order #4 (customer_id 5) |
+
+These three cases are the *only* things that ever differ between join types. Every join type below is just a different answer to: **"what do I do with unmatched rows on each side?"**
+
+---
+
+## Step 1: INNER JOIN — only the overlap
+
+**Rule:** Return a row only when both tables have a match. Unmatched rows on either side are dropped entirely.
+
+> **Analogy:** Only guests that *both* the bride and groom know get invited. Everyone else — sorry.
+
+### Implementation
+
+```sql
+SELECT customers.name, orders.amount
+FROM customers
 INNER JOIN orders
-ON students.id = orders.student_id;
+  ON customers.id = orders.customer_id;
 ```
 
-Result
+### Step-by-step what MySQL does
 
-| name | order_id |
-| ---- | -------- |
-| Ali  | 100      |
-| Ali  | 101      |
-| Sara | 102      |
+1. Takes every row in `customers`.
+2. For each one, looks for `orders` rows where `orders.customer_id = customers.id`.
+3. Keeps the pairing only if a match is found. No match → row is dropped, both sides.
 
-Ahmed is missing.
+### Result
 
-Why?
+```
++-------+--------+
+| name  | amount |
++-------+--------+
+| Ali   | 500.00 |
+| Ali   | 200.00 |
+| Zain  | 900.00 |
++-------+--------+
+```
 
-Because INNER JOIN only returns matching rows.
+Sara and Nadia are gone (no orders). Order #4 is gone (no matching customer). Only the guaranteed-overlap rows survive.
+
+**Memory hook:** `INNER` = *intersection*. If you know Venn diagrams, you already know `INNER JOIN`.
 
 ---
 
-Visual
+## Step 2: LEFT JOIN — keep everyone on the left
 
-```
-Students
+**Rule:** Return *every* row from the left table (the one right after `FROM`), attaching matching right-table data where it exists, or `NULL` where it doesn't.
 
-Ali ------ Order
-Sara ----- Order
-Ahmed ---- No Order
+> **Analogy:** It's the bride's wedding too. Everyone on *her* list is invited, whether or not the groom happens to know them.
 
-Result
-
-Ali
-Sara
-```
-
-Only common part.
-
-```
-Students   ∩   Orders
-```
-
----
-
-Real World
-
-E-commerce
-
-Customers
-
-| id | name  |
-| -- | ----- |
-| 1  | Ali   |
-| 2  | Sara  |
-| 3  | Ahmed |
-
-Orders
-
-| customer_id |
-| ----------- |
-| 1           |
-| 1           |
-| 2           |
-
-Need:
-
-Customers who have purchased.
-
-Use INNER JOIN.
-
----
-
-# 2. LEFT JOIN
-
-Think
-
-> Give me ALL rows from the left table.
-
-Whether matching exists or not.
-
----
-
-Students
-
-| id | name  |
-| -- | ----- |
-| 1  | Ali   |
-| 2  | Sara  |
-| 3  | Ahmed |
-
-Orders
-
-| student_id |
-| ---------- |
-| 1          |
-| 2          |
-
-Query
+### Implementation
 
 ```sql
-SELECT
-students.name,
-orders.student_id
-FROM students
+SELECT customers.name, orders.amount
+FROM customers
 LEFT JOIN orders
-ON students.id = orders.student_id;
+  ON customers.id = orders.customer_id;
 ```
 
-Output
+### Step-by-step what MySQL does
 
-| name  | student_id |
-| ----- | ---------- |
-| Ali   | 1          |
-| Sara  | 2          |
-| Ahmed | NULL       |
+1. Takes every row in `customers` — all four, no exceptions.
+2. Attaches matching `orders` rows if any exist.
+3. If no match exists, fills the `orders` columns with `NULL` instead of dropping the row.
 
-Ahmed appears!
-
-No order?
-
-Database writes NULL.
-
----
-
-Visual
+### Result
 
 ```
-LEFT TABLE
-
-Ali
-Sara
-Ahmed
-
-RIGHT TABLE
-
-Ali
-Sara
-
-LEFT JOIN RESULT
-
-Ali
-Sara
-Ahmed(NULL)
++-------+--------+
+| name  | amount |
++-------+--------+
+| Ali   | 500.00 |
+| Ali   | 200.00 |
+| Sara  | NULL   |
+| Zain  | 900.00 |
+| Nadia | NULL   |
++-------+--------+
 ```
 
----
+Sara and Nadia now appear with `NULL` amounts — visible proof they exist but never ordered anything.
 
-Real World
+### Real-world use case
 
-Company
-
-Employees
-
-| id | name |
-| -- | ---- |
-| 1  | John |
-| 2  | Mike |
-| 3  | Emma |
-
-Departments
-
-| employee_id | department |
-| ----------- | ---------- |
-| 1           | HR         |
-| 2           | IT         |
-
-Need:
-
-Show all employees.
-
-Even if they have no department.
-
-Use LEFT JOIN.
-
----
-
-# 3. RIGHT JOIN
-
-Opposite of LEFT JOIN.
-
-Keep everything from the RIGHT table.
-
----
-
-Students
-
-| id | name |
-| -- | ---- |
-| 1  | Ali  |
-| 2  | Sara |
-
-Orders
-
-| student_id |
-| ---------- |
-| 1          |
-| 2          |
-| 5          |
-
-Order 5 belongs to someone missing.
-
-Query
+This is the join you'll reach for constantly: **"show me all X, and their Y if they have any."**
 
 ```sql
+-- All customers and their total spend, including customers who've never ordered
 SELECT
-students.name,
-orders.student_id
-FROM students
+  customers.name,
+  COALESCE(SUM(orders.amount), 0) AS total_spent
+FROM customers
+LEFT JOIN orders ON customers.id = orders.customer_id
+GROUP BY customers.id, customers.name;
+```
+
+```
++-------+-------------+
+| name  | total_spent |
++-------+-------------+
+| Ali   |     700.00  |
+| Sara  |       0.00  |
+| Zain  |     900.00  |
+| Nadia |       0.00  |
++-------+-------------+
+```
+
+Notice `COALESCE(SUM(...), 0)` — without it, Sara and Nadia would show `NULL` instead of `0`, because `SUM()` of nothing is `NULL`, not zero.
+
+**Memory hook:** *LEFT stays whole. RIGHT gets filled in or left blank.* The table named first in `FROM` is the "protected" one — it never loses rows.
+
+---
+
+## Step 3: RIGHT JOIN — the mirror image
+
+**Rule:** Same idea as LEFT JOIN, flipped. Keep every row from the right table; fill `NULL` where the left table has no match.
+
+### Implementation
+
+```sql
+SELECT customers.name, orders.amount
+FROM customers
 RIGHT JOIN orders
-ON students.id = orders.student_id;
+  ON customers.id = orders.customer_id;
 ```
 
-Output
+### Step-by-step what MySQL does
 
-| name | student_id |
-| ---- | ---------- |
-| Ali  | 1          |
-| Sara | 2          |
-| NULL | 5          |
+1. Takes every row in `orders` — all four, no exceptions.
+2. Attaches matching `customers` rows if any exist.
+3. If no match, fills the `customers` columns with `NULL`.
 
----
-
-Real World
-
-Products
-
-Orders
-
-Need:
-
-Show every order.
-
-Even if the product has been deleted.
-
-RIGHT JOIN.
-
----
-
-# 4. FULL OUTER JOIN
-
-MySQL **does NOT support FULL OUTER JOIN directly.**
-
-But conceptually:
-
-Return
-
-* everything from left
-* everything from right
-
-Matched + unmatched.
-
-Example
-
-Students
-
-|Ali|
-|Sara|
-|Ahmed|
-
-Orders
-
-|Ali|
-|Sara|
-|John|
-
-Result
+### Result
 
 ```
-Ali
-Sara
-Ahmed
-John
++------+--------+
+| name | amount |
++------+--------+
+| Ali  | 500.00 |
+| Ali  | 200.00 |
+| Zain | 900.00 |
+| NULL | 150.00 |
++------+--------+
 ```
 
-Everything.
+Order #4 (customer_id 5, which doesn't exist) now shows up with `NULL` for the name — orphaned data made visible.
 
----
+### The swap trick
 
-How in MySQL?
-
-Using UNION.
+Any `RIGHT JOIN` can be rewritten as a `LEFT JOIN` by swapping the table order:
 
 ```sql
-SELECT *
-FROM students
+-- Identical result to the RIGHT JOIN above
+SELECT customers.name, orders.amount
+FROM orders
+LEFT JOIN customers
+  ON customers.id = orders.customer_id;
+```
+
+**Memory hook:** Most developers barely use `RIGHT JOIN` in practice — they just flip the tables and use `LEFT JOIN`, since it reads more naturally. If you know LEFT JOIN well, RIGHT JOIN is free knowledge.
+
+---
+
+## Step 4: FULL OUTER JOIN — nobody left behind
+
+**Rule:** Keep everything from both sides. Matches join up; unmatched rows on *either* side show `NULL` for the missing columns.
+
+> **Analogy:** Both families' entire guest lists attend — the bride's friends who don't know the groom, the groom's friends who don't know the bride, and everyone in between.
+
+### The MySQL gotcha (memorize this forever)
+
+⚠️ **MySQL has no `FULL OUTER JOIN` keyword.** Unlike PostgreSQL or SQL Server, you have to build it yourself with `UNION`.
+
+### Implementation
+
+```sql
+SELECT customers.name, orders.amount
+FROM customers
 LEFT JOIN orders
-ON students.id = orders.student_id
+  ON customers.id = orders.customer_id
 
 UNION
 
-SELECT *
-FROM students
+SELECT customers.name, orders.amount
+FROM customers
 RIGHT JOIN orders
-ON students.id = orders.student_id;
+  ON customers.id = orders.customer_id;
 ```
 
+### Step-by-step what's happening
+
+1. First query: LEFT JOIN → all customers, matched orders or `NULL`.
+2. Second query: RIGHT JOIN → all orders, matched customers or `NULL`.
+3. `UNION` stacks both result sets and **automatically removes exact duplicate rows** (the genuinely matched rows appear in both queries, so `UNION` collapses them to one copy).
+
+### Result
+
+```
++-------+--------+
+| name  | amount |
++-------+--------+
+| Ali   | 500.00 |
+| Ali   | 200.00 |
+| Sara  | NULL   |
+| Zain  | 900.00 |
+| Nadia | NULL   |
+| NULL  | 150.00 |
++-------+--------+
+```
+
+Everyone shows up: matched pairs, customers with no orders, and the orphaned order with no customer.
+
+**Important detail:** use `UNION`, not `UNION ALL`, or you may get true duplicate rows in edge cases where two unrelated rows happen to produce identical output. `UNION` deduplicates; `UNION ALL` doesn't.
+
+**Memory hook:** *"MySQL forgot to invite FULL JOIN to the party — you build it yourself out of LEFT + RIGHT + UNION."*
+
 ---
 
-# 5. CROSS JOIN
+## Step 5: CROSS JOIN — the wildcard
 
-Produces every possible combination.
+**Rule:** Every row from table A paired with every row from table B. No `ON` clause, no matching condition — just every possible combination.
 
-No condition.
+> **Analogy:** A t-shirt shop with sizes `{S, M, L}` and colors `{Red, Blue}`. A CROSS JOIN produces every size-color combination — the entire product catalog — because "size" and "color" don't need to match on anything; you *want* every pairing.
 
----
-
-Students
-
-|Ali|
-|Sara|
-
-Courses
-
-|Physics|
-|Math|
-
-Result
-
-| Student | Course  |
-| ------- | ------- |
-| Ali     | Physics |
-| Ali     | Math    |
-| Sara    | Physics |
-| Sara    | Math    |
-
-Query
+### Implementation
 
 ```sql
-SELECT *
-FROM students
-CROSS JOIN courses;
+CREATE TABLE sizes (size VARCHAR(5));
+CREATE TABLE colors (color VARCHAR(10));
+
+INSERT INTO sizes (size) VALUES ('S'), ('M'), ('L');
+INSERT INTO colors (color) VALUES ('Red'), ('Blue');
+
+SELECT sizes.size, colors.color
+FROM sizes
+CROSS JOIN colors;
 ```
+
+### Step-by-step what MySQL does
+
+1. Takes every row in `sizes` (3 rows).
+2. Pairs each one with every row in `colors` (2 rows).
+3. No filtering happens — output is always `rows(A) × rows(B)`.
+
+### Result
+
+```
++------+-------+
+| size | color |
++------+-------+
+| S    | Red   |
+| S    | Blue  |
+| M    | Red   |
+| M    | Blue  |
+| L    | Red   |
+| L    | Blue  |
++------+-------+
+```
+
+3 sizes × 2 colors = 6 rows, every combination represented.
+
+**Warning:** CROSS JOIN on large tables explodes fast — 1,000 rows × 1,000 rows = 1,000,000 rows. Only use it when you genuinely want the full combinatorial set (product variants, calendar date × store combinations, etc.).
+
+**Memory hook:** *CROSS = combinatorics, not comparison.* There's no `ON` clause because there's nothing to match — that's the whole point.
 
 ---
 
-Real World
+## Step 6: Self joins — joining a table to itself (bonus, but common)
 
-T-shirt Store
-
-Colors
-
-```
-Red
-Blue
-Green
-```
-
-Sizes
-
-```
-S
-M
-L
-```
-
-Need every possible combination.
-
-```
-Red S
-Red M
-Red L
-
-Blue S
-Blue M
-Blue L
-
-Green S
-Green M
-Green L
-```
-
-CROSS JOIN.
-
----
-
-# 6. SELF JOIN
-
-Join a table with itself.
-
-Useful for hierarchy.
-
-Example
-
-Employees
-
-| id | name | manager_id |
-| -- | ---- | ---------- |
-| 1  | CEO  | NULL       |
-| 2  | John | 1          |
-| 3  | Emma | 1          |
-| 4  | Ali  | 2          |
-
-Need
-
-Employee + Manager name
-
-Query
+Sometimes the two "tables" you're comparing are actually the same table — e.g., finding employees and their managers, both stored in one `employees` table.
 
 ```sql
+CREATE TABLE employees (
+  id INT PRIMARY KEY,
+  name VARCHAR(50),
+  manager_id INT
+);
+
+INSERT INTO employees VALUES
+  (1, 'Hina', NULL),
+  (2, 'Bilal', 1),
+  (3, 'Omar', 1),
+  (4, 'Fatima', 2);
+
 SELECT
-e.name AS Employee,
-m.name AS Manager
-FROM employees e
-LEFT JOIN employees m
-ON e.manager_id = m.id;
+  staff.name  AS employee,
+  manager.name AS manager
+FROM employees AS staff
+LEFT JOIN employees AS manager
+  ON staff.manager_id = manager.id;
 ```
 
-Output
+### Result
 
-| Employee | Manager |
-| -------- | ------- |
-| CEO      | NULL    |
-| John     | CEO     |
-| Emma     | CEO     |
-| Ali      | John    |
+```
++----------+---------+
+| employee | manager |
++----------+---------+
+| Hina     | NULL    |
+| Bilal    | Hina    |
+| Omar     | Hina    |
+| Fatima   | Bilal   |
++----------+---------+
+```
+
+**Memory hook:** A self join is just a normal `LEFT JOIN`/`INNER JOIN` where both sides happen to be the same table — you just alias it twice (`staff`, `manager`) so MySQL can tell the two "copies" apart.
 
 ---
 
-Real World
+## The cheat sheet
 
-Organization Chart
+| Join | Keeps | MySQL keyword | Analogy |
+|---|---|---|---|
+| INNER | Only matched rows | `INNER JOIN` | Guests both families know |
+| LEFT | All of left + matches | `LEFT JOIN` | Bride's full list |
+| RIGHT | All of right + matches | `RIGHT JOIN` | Groom's full list |
+| FULL OUTER | Everything, both sides | `LEFT JOIN ... UNION ... RIGHT JOIN` (no native keyword) | Both families' full lists |
+| CROSS | Every combination | `CROSS JOIN` | Every size × every color |
+| SELF | Table joined to itself | any join type + two aliases | Employee ↔ manager |
 
-```
-CEO
+## The one sentence that ties it all together
 
-│
+> **"FROM table A, JOIN table B, ON the condition that connects them."**
 
-├──John
+Read any join out loud in that order and it explains itself:
+`FROM customers LEFT JOIN orders ON customers.id = orders.customer_id`
+→ *"Starting from customers, keeping all of them, attach orders where the id matches."*
 
-│   └──Ali
+## The trick to never forget this
 
-└──Emma
-```
+Picture two overlapping circles. Ask yourself which parts you want shaded:
 
-Same table.
-
-Different aliases.
-
----
-
-# Multiple Joins
-
-Now let's build a real university example.
-
-Students
-
-| id | name |
-| -- | ---- |
-| 1  | Ali  |
-| 2  | Sara |
-
-Enrollments
-
-| student_id | course_id |
-| ---------- | --------- |
-| 1          | 101       |
-| 1          | 103       |
-| 2          | 102       |
-
-Courses
-
-| id  | course    |
-| --- | --------- |
-| 101 | Physics   |
-| 102 | Chemistry |
-| 103 | Math      |
-
-Query
-
-```sql
-SELECT
-students.name,
-courses.course
-FROM students
-INNER JOIN enrollments
-ON students.id = enrollments.student_id
-INNER JOIN courses
-ON enrollments.course_id = courses.id;
-```
-
-Output
-
-| Student | Course    |
-| ------- | --------- |
-| Ali     | Physics   |
-| Ali     | Math      |
-| Sara    | Chemistry |
-
----
-
-# How to Read a JOIN Query
-
-Take this query:
-
-```sql
-SELECT
-s.name,
-c.course
-FROM students s
-INNER JOIN enrollments e
-ON s.id = e.student_id
-INNER JOIN courses c
-ON e.course_id = c.id;
-```
-
-Read it like English:
-
-1. Start with the `students` table (aliased as `s`).
-2. Join `enrollments` (`e`) where the student IDs match.
-3. Join `courses` (`c`) where the course IDs match.
-4. Display the student's name and the course name.
-
----
-
-# Which JOIN Should You Use?
-
-| Situation                          | JOIN                                                                          |
-| ---------------------------------- | ----------------------------------------------------------------------------- |
-| Only matching records              | INNER JOIN                                                                    |
-| Keep all records from left table   | LEFT JOIN                                                                     |
-| Keep all records from right table  | RIGHT JOIN                                                                    |
-| Keep all records from both tables  | FULL OUTER JOIN (simulate with `LEFT JOIN` + `RIGHT JOIN` + `UNION` in MySQL) |
-| Every possible combination         | CROSS JOIN                                                                    |
-| Compare rows within the same table | SELF JOIN                                                                     |
-
----
-
-# Real-World Examples
-
-| Application                                   | Typical JOIN         |
-| --------------------------------------------- | -------------------- |
-| E-commerce: Customers ↔ Orders                | INNER JOIN           |
-| Show all customers, even those with no orders | LEFT JOIN            |
-| University: Students ↔ Enrollments ↔ Courses  | Multiple INNER JOINs |
-| Hospital: Patients ↔ Appointments ↔ Doctors   | Multiple JOINs       |
-| Banking: Customers ↔ Accounts ↔ Transactions  | Multiple JOINs       |
-| HR: Employees ↔ Departments                   | LEFT JOIN            |
-| Company hierarchy (Employee ↔ Manager)        | SELF JOIN            |
-| Product catalog (Colors × Sizes × Materials)  | CROSS JOIN           |
-
----
-
-# Memory Trick
-
-Think of JOINs as Venn diagrams:
-
-```
-INNER JOIN
-     (Only overlap)
-
-      A ∩ B
-```
-
-```
-LEFT JOIN
-
-All of A
-+ matching from B
-```
-
-```
-RIGHT JOIN
-
-All of B
-+ matching from A
-```
-
-```
-FULL OUTER JOIN
-
-Everything from A
-Everything from B
-```
-
-```
-CROSS JOIN
-
-A × B
-(All combinations)
-```
-
-```
-SELF JOIN
-
-A joins with A
-(Same table, different roles)
-```
-
-Once you master these patterns, you'll be able to query relational databases for real-world applications such as e-commerce systems, hospital management, banking, HR, and university databases.
+- Only the overlap → `INNER`
+- Left circle, overlap included → `LEFT`
+- Right circle, overlap included → `RIGHT`
+- Both circles, entirely → `FULL` (build with `UNION` in MySQL)
+- No overlap needed, just every combination → `CROSS`
