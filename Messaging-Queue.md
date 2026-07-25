@@ -1,4 +1,5 @@
----
+Excellent topic. Before learning **Kafka**, you must first understand **why Message Queues exist**. If you skip that, Kafka will feel like just another tool.
+
 Think of this as a journey:
 
 ```text
